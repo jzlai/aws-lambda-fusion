@@ -1,5 +1,5 @@
 import { FusionConfiguration, LambdaType } from './types'
-import Lambda, { InvokeAsyncRequest, ClientConfiguration } from 'aws-sdk/clients/lambda'
+import Lambda, { InvokeAsyncRequest, ClientConfiguration, InvocationRequest } from 'aws-sdk/clients/lambda'
 import { Context, Callback } from 'aws-lambda'
 
 class FunctionFusion {
@@ -11,7 +11,7 @@ class FunctionFusion {
     this.clientConfiguration = clientConfiguration
   }
 
-  async invokeFunctionAsync (source: string, destination: LambdaType, context: Context, callback: Callback, ...args: any[]) {
+  invokeFunctionAsync (source: string, destination: LambdaType, context: Context, callback: Callback, ...args: any[]) {
     if (this.fusionConfiguration[source] !== this.fusionConfiguration[destination.name]) {
       console.log(`Source "${source}" and destination "${destination.name}" not in same lambda group. Invoking remote request.`)
       const lambda = new Lambda(this.clientConfiguration)
@@ -19,12 +19,12 @@ class FunctionFusion {
         FunctionName: destination.name,
         InvokeArgs: args
       }
-      const response = await lambda.invokeAsync(params).promise()
-      if (response.$response.error) {
-        throw new Error(response.$response.error.message)
+      try {
+        const response = lambda.invokeAsync(params)
+        console.log('Success', response)
+      } catch (error) {
+        console.log('Error', error)
       }
-      console.log('Success', response)
-      return response
     } else {
       if (!destination.handler) {
         throw new Error('Destination handler cannot be called')
@@ -33,17 +33,26 @@ class FunctionFusion {
     }
   }
 
-  invokeFunctionSync (source: string, destination: LambdaType, context: Context, callback: Callback, ...args: any[]) {
+  async invokeFunctionSync (source: string, destination: LambdaType, context: Context, callback: Callback, ...args: any[]) {
     if (this.fusionConfiguration[source] !== this.fusionConfiguration[destination.name]) {
       console.log(`Source "${source}" and destination "${destination.name}" not in same lambda group. Invoking remote request.`)
       const lambda = new Lambda(this.clientConfiguration)
-      const params: InvokeAsyncRequest = {
+      const params: InvocationRequest = {
         FunctionName: destination.name,
-        InvokeArgs: args
+        InvocationType: 'RequestResponse',
+        Payload: {
+          event: args
+        }
       }
-      const response = lambda.invoke(params)
-      console.log('Success', response)
-      return response
+      params.Payload = JSON.stringify(params.Payload)
+      try {
+        const response = await lambda.invoke(params).promise()
+        console.log('Success', response.$response.data)
+        return response
+      } catch (err) {
+        console.log('Error', err)
+        return err
+      }
     } else {
       if (!destination.handler) {
         throw new Error('Destination handler cannot be called')
