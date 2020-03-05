@@ -1,6 +1,6 @@
 {
   "name": "aws-lambda-fusion",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Runtime data based framework for function fusion",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
