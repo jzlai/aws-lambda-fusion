@@ -29,7 +29,11 @@ class FunctionFusion {
       if (!destination.handler) {
         throw new Error('Destination handler cannot be called')
       }
-      return destination.handler(args, context, callback)
+
+      const event = {
+        event: args
+      }
+      return destination.handler(event, context, callback)
     }
   }
 
@@ -51,7 +55,7 @@ class FunctionFusion {
         return response
       } catch (err) {
         console.log('Error', err)
-        return err
+        throw err
       }
     } else {
       if (!destination.handler) {

@@ -1,6 +1,6 @@
 {
   "name": "aws-lambda-fusion",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Runtime data based framework for function fusion",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,10 +25,10 @@
     "@typescript-eslint/eslint-plugin": "2.10.0",
     "@typescript-eslint/parser": "2.10.0",
     "standardx": "5.0.0",
-    "typescript": "3.7.2"
+    "typescript": "3.7.2",
+    "aws-sdk": "2.585.0"
   },
   "dependencies": {
-    "aws-sdk": "2.585.0"
   },
   "eslintConfig": {
     "rules": {
