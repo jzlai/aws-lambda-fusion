@@ -11,9 +11,9 @@ class FunctionFusion {
     this.clientConfiguration = clientConfiguration
   }
 
-  invokeFunctionAsync (source: string, destination: LambdaType, context: Context, callback: Callback, ...args: any[]) {
-    if (this.fusionConfiguration[source] !== this.fusionConfiguration[destination.name]) {
-      console.log(`Source "${source}" and destination "${destination.name}" not in same lambda group. Invoking remote request.`)
+  invokeFunctionAsync (sourceName: string, destination: LambdaType, context: Context, callback: Callback, ...args: any[]) {
+    if (!this.areInSameFusionGroup(sourceName, destination.name)) {
+      console.log(`Source "${sourceName}" and destination "${destination.name}" not in same lambda group. Invoking remote request.`)
       const lambda = new Lambda(this.clientConfiguration)
       const params: InvokeAsyncRequest = {
         FunctionName: destination.name,
@@ -22,10 +22,12 @@ class FunctionFusion {
       try {
         const response = lambda.invokeAsync(params)
         console.log('Success', response)
+        return response
       } catch (error) {
         console.log('Error', error)
       }
     } else {
+      console.log(`Source "${sourceName}" and destination "${destination.name}" in same lambda group. Invoking local request.`)
       if (!destination.handler) {
         throw new Error('Destination handler cannot be called')
       }
@@ -37,15 +39,15 @@ class FunctionFusion {
     }
   }
 
-  async invokeFunctionSync (source: string, destination: LambdaType, context: Context, callback: Callback, ...args: any[]) {
-    if (this.fusionConfiguration[source] !== this.fusionConfiguration[destination.name]) {
-      console.log(`Source "${source}" and destination "${destination.name}" not in same lambda group. Invoking remote request.`)
+  async invokeFunctionSync (sourceName: string, destination: LambdaType, context: Context, callback: Callback, ...args: any[]) {
+    if (!this.areInSameFusionGroup(sourceName, destination.name)) {
+      console.log(`Source "${sourceName}" and destination "${destination.name}" not in same lambda group. Invoking remote request.`)
       const lambda = new Lambda(this.clientConfiguration)
       const params: InvocationRequest = {
         FunctionName: destination.name,
         InvocationType: 'RequestResponse',
         Payload: {
-          event: args
+          args
         }
       }
       params.Payload = JSON.stringify(params.Payload)
@@ -58,11 +60,20 @@ class FunctionFusion {
         throw err
       }
     } else {
+      console.log(`Source "${sourceName}" and destination "${destination.name}" in same lambda group. Invoking local request.`)
+
       if (!destination.handler) {
         throw new Error('Destination handler cannot be called')
       }
-      return destination.handler(args, context, callback)
+      return destination.handler({ args }, context, callback)
     }
+  }
+
+  private areInSameFusionGroup (sourceName: string, destinationName: string) {
+    return Object.values(this.fusionConfiguration).some(fusionGroup => {
+      console.log(fusionGroup.lambdas.includes(sourceName), fusionGroup.lambdas.includes(destinationName))
+      return fusionGroup.lambdas.includes(sourceName) && fusionGroup.lambdas.includes(destinationName)
+    })
   }
 }
 

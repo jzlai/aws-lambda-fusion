@@ -1,12 +1,15 @@
 import { Handler } from 'aws-lambda'
 
 export type FusionConfiguration = {
-  [lambdaName: string]: FusionGroupId
+  [fusionGroupId: string]: FusionGroup;
 }
 
-export type FusionGroupId = string
+export type FusionGroup = {
+  entry: string;
+  lambdas: string[];
+}
 
 export type LambdaType = {
-  name: string
-  handler?: Handler
+  name: string;
+  handler?: Handler;
 }
