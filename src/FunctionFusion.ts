@@ -1,6 +1,6 @@
 import { FusionConfiguration, LambdaType } from './types'
-import Lambda, { InvokeAsyncRequest, ClientConfiguration, InvocationRequest } from 'aws-sdk/clients/lambda'
-import { Context, Callback } from 'aws-lambda'
+import Lambda, { ClientConfiguration, InvocationRequest } from 'aws-sdk/clients/lambda'
+import { Context } from 'aws-lambda'
 import { PromiseResult } from 'aws-sdk/lib/request'
 import { AWSError } from 'aws-sdk/lib/error'
 
@@ -13,41 +13,21 @@ class FunctionFusion {
     this.clientConfiguration = clientConfiguration
   }
 
-  invokeFunctionAsync (sourceName: string, destination: LambdaType, context: Context, callback: Callback, ...args: any[]) {
-    if (!this.areInSameFusionGroup(sourceName, destination.name)) {
-      console.log(`Source "${sourceName}" and destination "${destination.name}" not in same lambda group. Invoking remote request.`)
-      const lambda = new Lambda(this.clientConfiguration)
-      const params: InvokeAsyncRequest = {
-        FunctionName: destination.name,
-        InvokeArgs: args
-      }
-      try {
-        const response = lambda.invokeAsync(params)
-        console.log('Success', response)
-        return response
-      } catch (error) {
-        console.log('Error', error)
-      }
-    } else {
-      console.log(`Source "${sourceName}" and destination "${destination.name}" in same lambda group. Invoking local request.`)
-      if (!destination.handler) {
-        throw new Error('Destination handler cannot be called')
-      }
-
-      const event = {
-        event: args
-      }
-      return destination.handler(event, context, callback)
-    }
+  async invokeFunctionAsync (sourceName: string, destination: LambdaType, context: Context, ...args: any[]) {
+    return this.invoke(sourceName, destination, context, 'Event', args)
   }
 
   async invokeFunctionSync (sourceName: string, destination: LambdaType, context: Context, ...args: any[]) {
+    return this.invoke(sourceName, destination, context, 'RequestResponse', args)
+  }
+
+  private async invoke (sourceName: string, destination: LambdaType, context: Context, InvocationType: 'Event' | 'RequestResponse' | 'DryRun', args: any[]) {
     if (!this.areInSameFusionGroup(sourceName, destination.name)) {
       console.log(`Source "${sourceName}" and destination "${destination.name}" not in same lambda group. Invoking remote request.`)
       const lambda = new Lambda(this.clientConfiguration)
       const params: InvocationRequest = {
         FunctionName: destination.name,
-        InvocationType: 'RequestResponse',
+        InvocationType,
         Payload: {
           args
         }
