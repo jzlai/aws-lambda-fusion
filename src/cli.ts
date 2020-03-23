@@ -94,8 +94,8 @@ async function run () {
       }
     }
 
-    Object.values(fusionConfig).forEach((fusionGroup, index) => {
-      serverlessYaml.functions[index] = {
+    Object.values(fusionConfig).forEach(fusionGroup => {
+      serverlessYaml.functions[fusionGroup.entry] = {
         handler: `src/${fusionGroup.entry}.handler`,
         name: fusionGroup.entry
       }
