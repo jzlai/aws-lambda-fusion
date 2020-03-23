@@ -1,6 +1,8 @@
 import { FusionConfiguration, LambdaType } from './types'
 import Lambda, { InvokeAsyncRequest, ClientConfiguration, InvocationRequest } from 'aws-sdk/clients/lambda'
 import { Context, Callback } from 'aws-lambda'
+import { PromiseResult } from 'aws-sdk/lib/request'
+import { AWSError } from 'aws-sdk/lib/error'
 
 class FunctionFusion {
   fusionConfiguration: FusionConfiguration
@@ -39,7 +41,7 @@ class FunctionFusion {
     }
   }
 
-  async invokeFunctionSync (sourceName: string, destination: LambdaType, context: Context, callback: Callback, ...args: any[]) {
+  async invokeFunctionSync (sourceName: string, destination: LambdaType, context: Context, ...args: any[]) {
     if (!this.areInSameFusionGroup(sourceName, destination.name)) {
       console.log(`Source "${sourceName}" and destination "${destination.name}" not in same lambda group. Invoking remote request.`)
       const lambda = new Lambda(this.clientConfiguration)
@@ -65,13 +67,41 @@ class FunctionFusion {
       if (!destination.handler) {
         throw new Error('Destination handler cannot be called')
       }
-      return destination.handler({ args }, context, callback)
+
+      let res: Partial<PromiseResult<Lambda.InvocationResponse, AWSError>> = {} as any
+      const cb = (err: Error | string | null | undefined, result: any) => {
+        if (!err) {
+          res = {
+            StatusCode: 200,
+            Payload: result
+          }
+        } else {
+          res = {
+            StatusCode: 200,
+            FunctionError: 'Unhandled'
+          }
+          if (typeof err === 'string') {
+            res.Payload = {
+              errorType: 'Error',
+              errorMessage: err,
+              trace: []
+            }
+          } else {
+            res.Payload = {
+              errorType: 'Error',
+              errorMessage: err.message,
+              trace: err.stack
+            }
+          }
+        }
+      }
+      destination.handler({ args }, context, cb)
+      return res
     }
   }
 
   private areInSameFusionGroup (sourceName: string, destinationName: string) {
     return Object.values(this.fusionConfiguration).some(fusionGroup => {
-      console.log(fusionGroup.lambdas.includes(sourceName), fusionGroup.lambdas.includes(destinationName))
       return fusionGroup.lambdas.includes(sourceName) && fusionGroup.lambdas.includes(destinationName)
     })
   }
