@@ -50,34 +50,43 @@ class FunctionFusion {
 
       let res: Partial<PromiseResult<Lambda.InvocationResponse, AWSError>> = {} as any
       const cb = (err: Error | string | null | undefined, result: any) => {
-        if (!err) {
-          res = {
-            StatusCode: 200,
-            Payload: result
-          }
-        } else {
-          res = {
-            StatusCode: 200,
-            FunctionError: 'Unhandled'
-          }
-          if (typeof err === 'string') {
-            res.Payload = {
-              errorType: 'Error',
-              errorMessage: err,
-              trace: []
-            }
-          } else {
-            res.Payload = {
-              errorType: 'Error',
-              errorMessage: err.message,
-              trace: err.stack
-            }
-          }
-        }
+        res = this.generateResponse(err, result)
       }
-      destination.handler({ args }, context, cb)
+      const directResponse = await destination.handler({ args }, context, cb)
+      if (directResponse) {
+        return this.generateResponse(null, directResponse)
+      }
       return res
     }
+  }
+
+  private generateResponse (err: Error | string | null | undefined, result: any) {
+    let res: Partial<PromiseResult<Lambda.InvocationResponse, AWSError>> = {} as any
+    if (!err) {
+      res = {
+        StatusCode: 200,
+        Payload: result
+      }
+    } else {
+      res = {
+        StatusCode: 200,
+        FunctionError: 'Unhandled'
+      }
+      if (typeof err === 'string') {
+        res.Payload = {
+          errorType: 'Error',
+          errorMessage: err,
+          trace: []
+        }
+      } else {
+        res.Payload = {
+          errorType: 'Error',
+          errorMessage: err.message,
+          trace: err.stack
+        }
+      }
+    }
+    return res
   }
 
   private areInSameFusionGroup (sourceName: string, destinationName: string) {
