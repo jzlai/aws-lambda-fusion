@@ -36,57 +36,70 @@ async function run () {
       program.help()
     }
 
-    const questions = [
-      {
-        type: 'input',
-        message: 'Name of your service?',
-        name: 'serviceName',
-        default: dirName
-      },
-      {
-        type: 'list',
-        message: 'nodejs runtime?',
-        name: 'nodeRuntime',
-        choices: ['nodejs12.x', 'nodejs10.x', 'nodejs8.10'],
-        default: false
-      }
-    ]
-
-    const answers = await inquirer.prompt(questions)
-
     const configBuffer = fs.readFileSync(program.fusionConfig)
     const fusionConfig = JSON.parse(configBuffer.toString()) as FusionConfiguration
 
-    const serverlessYaml = {
-      service: {
-        name: answers.serviceName
-      },
-      custom: {
-        webpack: {
-          webpackConfig: './webpack.config.js',
-          includeModules: true
+    let serverlessYaml: any
+    if (fs.existsSync('serverless.yml')) {
+      try {
+        serverlessYaml = yaml.safeLoad(fs.readFileSync('serverless.yml', 'utf-8'))
+        if (serverlessYaml === undefined || typeof serverlessYaml === 'string') {
+          console.error(chalk.bold(chalk.red('Please provide a valid serverless.yml')))
+          return
         }
-      },
-      plugins: ['serverless-webpack'],
-      provider: {
-        name: 'aws',
-        runtime: answers.nodeRuntime,
-        region: 'eu-central-1',
-        iamRoleStatements: [{
-          Effect: 'Allow',
-          Action: ['lambda:InvokeFunction', 'lambda:InvokeAsync'],
-          Resource: '*'
-        }]
-      },
-      functions: {}
-    } as any
+        serverlessYaml.functions = {}
+      } catch (err) {
+        console.error('Error parsing serverless.yml')
+      }
+    } else {
+      console.log(chalk.grey('No serverless.yml detected. Generating new one.'))
+      const questions = [
+        {
+          type: 'input',
+          message: 'Name of your service?',
+          name: 'serviceName',
+          default: dirName
+        },
+        {
+          type: 'list',
+          message: 'nodejs runtime?',
+          name: 'nodeRuntime',
+          choices: ['nodejs12.x', 'nodejs10.x', 'nodejs8.10'],
+          default: false
+        },
+        {
+          type: 'input',
+          message: 'AWS region?',
+          name: 'awsRegion',
+          default: 'eu-central-1'
+        }
+      ]
+
+      const answers = await inquirer.prompt(questions)
+      serverlessYaml = {
+        service: {
+          name: answers.serviceName
+        },
+        provider: {
+          name: 'aws',
+          runtime: answers.nodeRuntime,
+          region: answers.awsRegion,
+          iamRoleStatements: [{
+            Effect: 'Allow',
+            Action: ['lambda:InvokeFunction', 'lambda:InvokeAsync'],
+            Resource: '*'
+          }]
+        },
+        functions: {}
+      }
+    }
+
     Object.values(fusionConfig).forEach((fusionGroup, index) => {
       serverlessYaml.functions[index] = {
         handler: `src/${fusionGroup.entry}.handler`,
         name: fusionGroup.entry
       }
     })
-    console.log()
     const dump = yaml.safeDump(serverlessYaml)
     fs.writeFileSync('serverless.yml', dump)
     console.log(
