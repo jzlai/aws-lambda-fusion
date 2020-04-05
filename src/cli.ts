@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import program from 'commander'
-import figlet from 'figlet'
 import clear from 'clear'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -12,11 +11,6 @@ const dirName = process.cwd().split('/').slice(-1)[0]
 
 async function run () {
   clear()
-  console.log(
-    chalk.yellow(
-      figlet.textSync('lambda-fusion', { horizontalLayout: 'controlled smushing' })
-    )
-  )
 
   program
     .version(require('../package.json').version)
@@ -47,7 +41,6 @@ async function run () {
           console.error(chalk.bold(chalk.red('Please provide a valid serverless.yml')))
           return
         }
-        serverlessYaml.functions = {}
       } catch (err) {
         console.error('Error parsing serverless.yml')
       }
@@ -95,11 +88,27 @@ async function run () {
     }
 
     Object.values(fusionConfig).forEach(fusionGroup => {
-      serverlessYaml.functions[fusionGroup.entry] = {
-        handler: `src/${fusionGroup.entry}.handler`,
-        name: fusionGroup.entry
+      if (serverlessYaml.functions[fusionGroup.entry]) {
+        Object.assign(serverlessYaml.functions[fusionGroup.entry], {
+          handler: `src/${fusionGroup.entry}.handler`,
+          name: fusionGroup.entry
+        })
+      } else {
+        serverlessYaml.functions[fusionGroup.entry] = {
+          handler: `src/${fusionGroup.entry}.handler`,
+          name: fusionGroup.entry
+        }
       }
     })
+
+    const entries = Object.values(fusionConfig).map(fusionGroup => fusionGroup.entry)
+
+    Object.keys(serverlessYaml.functions).forEach(functionName => {
+      if (!entries.includes(functionName)) {
+        delete serverlessYaml.functions[functionName]
+      }
+    })
+
     const dump = yaml.safeDump(serverlessYaml)
     fs.writeFileSync('serverless.yml', dump)
     console.log(
