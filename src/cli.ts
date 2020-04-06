@@ -87,7 +87,7 @@ async function run () {
       }
     }
 
-    Object.values(fusionConfig).forEach(fusionGroup => {
+    fusionConfig.forEach(fusionGroup => {
       if (serverlessYaml.functions[fusionGroup.entry]) {
         Object.assign(serverlessYaml.functions[fusionGroup.entry], {
           handler: `src/${fusionGroup.entry}.handler`,
@@ -101,7 +101,7 @@ async function run () {
       }
     })
 
-    const entries = Object.values(fusionConfig).map(fusionGroup => fusionGroup.entry)
+    const entries = fusionConfig.map(fusionGroup => fusionGroup.entry)
 
     Object.keys(serverlessYaml.functions).forEach(functionName => {
       if (!entries.includes(functionName)) {

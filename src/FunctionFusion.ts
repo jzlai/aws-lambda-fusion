@@ -90,7 +90,7 @@ class FunctionFusion {
   }
 
   private areInSameFusionGroup (sourceName: string, destinationName: string) {
-    return Object.values(this.fusionConfiguration).some(fusionGroup => {
+    return this.fusionConfiguration.some(fusionGroup => {
       return fusionGroup.lambdas.includes(sourceName) && fusionGroup.lambdas.includes(destinationName)
     })
   }
