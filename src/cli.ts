@@ -6,6 +6,7 @@ import fs from 'fs'
 import { FusionConfiguration } from './types'
 import yaml from 'js-yaml'
 import inquirer from 'inquirer'
+import fetch from 'node-fetch'
 
 const dirName = process.cwd().split('/').slice(-1)[0]
 
@@ -22,16 +23,25 @@ async function run () {
     program.outputHelp()
   }
 
-  if (program.fusionConfig) {
-    if (!fs.existsSync(program.fusionConfig)) {
-      console.log(
-        chalk.bold(chalk.red('Fusion config does not exist: ') + program.fusionConfig)
-      )
-      program.help()
-    }
+  let fusionConfig: FusionConfiguration
 
-    const configBuffer = fs.readFileSync(program.fusionConfig)
-    const fusionConfig = JSON.parse(configBuffer.toString()) as FusionConfiguration
+  if (program.fusionConfig) {
+    if(program.fusionConfig.startsWith('http')) {
+      const res = await fetch(program.fusionConfig)
+      fusionConfig = await res.json()
+    } else {
+      if (!fs.existsSync(program.fusionConfig)) {
+        console.log(
+          chalk.bold(chalk.red('Fusion config does not exist: ') + program.fusionConfig)
+        )
+        program.help()
+      }
+      const configBuffer = fs.readFileSync(program.fusionConfig)
+      fusionConfig = JSON.parse(configBuffer.toString()) as FusionConfiguration
+    }
+   
+
+  
 
     let serverlessYaml: any
     if (fs.existsSync('serverless.yml')) {
