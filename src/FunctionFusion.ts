@@ -1,6 +1,6 @@
 import { FusionConfiguration, LambdaType } from './types'
 import Lambda, { ClientConfiguration, InvocationRequest } from 'aws-sdk/clients/lambda'
-import { Context } from 'aws-lambda'
+import { Context, Callback, Handler } from 'aws-lambda'
 import { PromiseResult } from 'aws-sdk/lib/request'
 import { AWSError } from 'aws-sdk/lib/error'
 
@@ -97,3 +97,21 @@ class FunctionFusion {
 }
 
 export default FunctionFusion
+
+export const handlerWrapper = async (event: Event, context: Context, callback: Callback, handler: Handler, traceId: string, lambdaName: string) => {
+  console.log({
+    traceId,
+    starttime: Date.now(),
+    lambdaName
+  })
+
+  const result = await handler(event, context, callback)
+
+  console.log({
+    traceId,
+    endtime: Date.now(),
+    lambdaName
+  })
+  
+  return result
+}

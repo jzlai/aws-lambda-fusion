@@ -1,3 +1,3 @@
-import FunctionFusion from './FunctionFusion'
+import FunctionFusion, { handlerWrapper } from './FunctionFusion'
 
-export { FunctionFusion }
+export { FunctionFusion, handlerWrapper }
