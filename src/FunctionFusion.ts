@@ -98,7 +98,16 @@ class FunctionFusion {
 
 export default FunctionFusion
 
-export const handlerWrapper = async (event: Event, context: Context, callback: Callback, handler: Handler, traceId: string, lambdaName: string) => {
+
+type HandlerWrapperArgs = {
+  event: Event,
+  context: Context,
+  callback: Callback,
+  handler: Handler,
+  traceId?: string,
+  lambdaName?: string
+}
+export const handlerWrapper = async ({ event, context, callback, handler, traceId, lambdaName }: HandlerWrapperArgs) => {
   console.log({
     traceId,
     starttime: Date.now(),
