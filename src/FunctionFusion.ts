@@ -41,7 +41,7 @@ class FunctionFusion {
         `Source "${source}" and destination "${target}" not in same lambda group. Invoking remote request.`
       )
       const lambda = new Lambda(this.clientConfiguration)
-      console.log(`Looking for entry for ${target}`)
+      console.log(`Looking for entry point for ${target}`)
       const entry = this.fusionConfiguration.find((config) =>
         config.lambdas.includes(target)
       )?.entry
@@ -50,10 +50,13 @@ class FunctionFusion {
         throw Error('No entry lambda found')
       }
 
+      console.log(`Found entry ${entry}`)
+
       const params: InvocationRequest = {
         FunctionName: entry,
         InvocationType,
         Payload: {
+          target: target,
           args,
         },
       }
@@ -66,6 +69,7 @@ class FunctionFusion {
         console.log('Error', err)
         throw err
       }
+      // local
     } else {
       console.log(
         `Source "${source}" and destination "${target}" in same lambda group. Invoking local request.`
