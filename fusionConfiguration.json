@@ -1,0 +1,20 @@
+[
+  {
+    "entry": "function1",
+    "lambdas": [
+      "function1"
+    ]
+  },{
+    "entry": "function2",
+    "lambdas": [
+      "function2"
+    ]
+  },
+  {
+    "entry": "function3",
+    "lambdas": [
+      "function2"
+    ]
+  }
+]
+

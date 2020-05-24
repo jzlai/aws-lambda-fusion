@@ -1,0 +1,25 @@
+service:
+  name: aws-lambda-fusion
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+plugins:
+  - serverless-webpack
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: eu-west-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - 'lambda:InvokeFunction'
+        - 'lambda:InvokeAsync'
+      Resource: '*'
+functions:
+  screenshot:
+    handler: src/screenshot.handler
+    name: screenshot
+  resize:
+    handler: src/resize.handler
+    name: resize

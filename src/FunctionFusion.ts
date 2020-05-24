@@ -35,7 +35,7 @@ class FunctionFusion {
     InvocationType: 'Event' | 'RequestResponse' | 'DryRun',
     args: any[]
   ) {
-    const { source, target, context } = params
+    const { source, target, context, traceId } = params
     if (!this.areInSameFusionGroup(params.source, params.target)) {
       console.log(
         `Source "${source}" and destination "${target}" not in same lambda group. Invoking remote request.`
@@ -58,6 +58,7 @@ class FunctionFusion {
         Payload: {
           target: target,
           args,
+          traceId,
         },
       }
       params.Payload = JSON.stringify(params.Payload)
@@ -84,7 +85,7 @@ class FunctionFusion {
       const cb = (err: Error | string | null | undefined, result: any) => {
         res = this.generateResponse(err, result)
       }
-      const directResponse = await handler({ args }, context, cb)
+      const directResponse = await handler({ args, traceId }, context, cb)
       if (directResponse) {
         return this.generateResponse(null, directResponse)
       }

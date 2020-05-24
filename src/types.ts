@@ -16,4 +16,5 @@ export type InvokeParams = {
   source: string
   target: string
   context: Context
+  traceId: string
 }
