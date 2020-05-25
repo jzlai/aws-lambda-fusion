@@ -10,13 +10,17 @@ import fetch from 'node-fetch'
 
 const dirName = process.cwd().split('/').slice(-1)[0]
 
-async function run () {
+async function run() {
   clear()
 
   program
     .version(require('../package.json').version)
     .description('CLI for generating serverless.yml from fusion configuration')
-    .option('-f, --fusion-config <file.json>', 'Path to fusion configuration .json')
+    .option(
+      '-f, --fusion-config <file.json>',
+      'Path to fusion configuration .json'
+    )
+    .option('-h --handler <fusion-handler-name>', 'Path to fusion handler')
     .parse(process.argv)
 
   if (!process.argv.slice(2).length) {
@@ -26,29 +30,35 @@ async function run () {
   let fusionConfig: FusionConfiguration
 
   if (program.fusionConfig) {
-    if(program.fusionConfig.startsWith('http')) {
+    if (program.fusionConfig.startsWith('http')) {
       const res = await fetch(program.fusionConfig)
       fusionConfig = await res.json()
     } else {
       if (!fs.existsSync(program.fusionConfig)) {
         console.log(
-          chalk.bold(chalk.red('Fusion config does not exist: ') + program.fusionConfig)
+          chalk.bold(
+            chalk.red('Fusion config does not exist: ') + program.fusionConfig
+          )
         )
         program.help()
       }
       const configBuffer = fs.readFileSync(program.fusionConfig)
       fusionConfig = JSON.parse(configBuffer.toString()) as FusionConfiguration
     }
-   
-
-  
 
     let serverlessYaml: any
     if (fs.existsSync('serverless.yml')) {
       try {
-        serverlessYaml = yaml.safeLoad(fs.readFileSync('serverless.yml', 'utf-8'))
-        if (serverlessYaml === undefined || typeof serverlessYaml === 'string') {
-          console.error(chalk.bold(chalk.red('Please provide a valid serverless.yml')))
+        serverlessYaml = yaml.safeLoad(
+          fs.readFileSync('serverless.yml', 'utf-8')
+        )
+        if (
+          serverlessYaml === undefined ||
+          typeof serverlessYaml === 'string'
+        ) {
+          console.error(
+            chalk.bold(chalk.red('Please provide a valid serverless.yml'))
+          )
           return
         }
       } catch (err) {
@@ -61,59 +71,63 @@ async function run () {
           type: 'input',
           message: 'Name of your service?',
           name: 'serviceName',
-          default: dirName
+          default: dirName,
         },
         {
           type: 'list',
           message: 'nodejs runtime?',
           name: 'nodeRuntime',
           choices: ['nodejs12.x', 'nodejs10.x', 'nodejs8.10'],
-          default: false
+          default: false,
         },
         {
           type: 'input',
           message: 'AWS region?',
           name: 'awsRegion',
-          default: 'eu-central-1'
-        }
+          default: 'eu-central-1',
+        },
       ]
 
       const answers = await inquirer.prompt(questions)
       serverlessYaml = {
         service: {
-          name: answers.serviceName
+          name: answers.serviceName,
         },
         provider: {
           name: 'aws',
           runtime: answers.nodeRuntime,
           region: answers.awsRegion,
-          iamRoleStatements: [{
-            Effect: 'Allow',
-            Action: ['lambda:InvokeFunction', 'lambda:InvokeAsync'],
-            Resource: '*'
-          }]
+          iamRoleStatements: [
+            {
+              Effect: 'Allow',
+              Action: ['lambda:InvokeFunction', 'lambda:InvokeAsync'],
+              Resource: '*',
+            },
+          ],
         },
-        functions: {}
+        functions: {},
       }
     }
 
-    fusionConfig.forEach(fusionGroup => {
+    const fusionHandler = program.handler || 'fusionHandler'
+
+    fusionConfig.forEach((fusionGroup) => {
       if (serverlessYaml.functions[fusionGroup.entry]) {
         Object.assign(serverlessYaml.functions[fusionGroup.entry], {
-          handler: `src/${fusionGroup.entry}.handler`,
-          name: fusionGroup.entry
+          handler: `src/${fusionHandler}.handler`,
+          name: fusionGroup.entry,
         })
       } else {
         serverlessYaml.functions[fusionGroup.entry] = {
-          handler: `src/${fusionGroup.entry}.handler`,
-          name: fusionGroup.entry
+          handler: `src/${fusionHandler}.handler`,
+          name: fusionGroup.entry,
         }
       }
     })
 
-    const entries = fusionConfig.map(fusionGroup => fusionGroup.entry)
+    const entries = fusionConfig.map((fusionGroup) => fusionGroup.entry)
 
-    Object.keys(serverlessYaml.functions).forEach(functionName => {
+    Object.keys(serverlessYaml.functions).forEach((functionName) => {
       if (!entries.includes(functionName)) {
         delete serverlessYaml.functions[functionName]
       }
@@ -122,7 +136,9 @@ async function run () {
     const dump = yaml.safeDump(serverlessYaml)
     fs.writeFileSync('serverless.yml', dump)
     console.log(
-      `${chalk.bold(chalk.blue('Successfully'))} ${chalk.grey('generated serverless.yml')}`
+      `${chalk.bold(chalk.blue('Successfully'))} ${chalk.grey(
+        'generated serverless.yml'
+      )}`
     )
   }
 }
