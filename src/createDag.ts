@@ -1,13 +1,13 @@
 import fs from 'fs'
 import path from 'path'
 
-const dirPath = path.join(__dirname, 'src')
-const files = fs.readdirSync(dirPath)
+type DAG = {
+  [key: string]: string[]
+}
 
-export const createDag = () => {
-  type DAG = {
-    [key: string]: string[]
-  }
+export const createDag = (dirName: string) => {
+  const dirPath = path.join(process.cwd(), dirName)
+  const files = fs.readdirSync(dirPath)
   let dag: DAG = {}
   for (let file of files) {
     if (file === 'fusionHandler.js') {

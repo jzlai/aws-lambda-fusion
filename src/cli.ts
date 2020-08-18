@@ -22,7 +22,7 @@ async function run() {
       'Path to fusion configuration .json'
     )
     .option('-h --handler <fusion-handler-name>', 'Path to fusion handler')
-    .option('-d, --dag', 'create dag.json')
+    .option('-d, --dag <dirName>', 'create dag.json')
     .parse(process.argv)
 
   if (!process.argv.slice(2).length) {
@@ -32,7 +32,12 @@ async function run() {
   let fusionConfig: FusionConfiguration
 
   if (program.dag) {
-    createDag()
+    createDag(program.dag)
+    console.log(
+      `${chalk.bold(chalk.blue('Successfully'))} ${chalk.grey(
+        'generated dag.json'
+      )}`
+    )
   }
 
   if (program.fusionConfig) {
