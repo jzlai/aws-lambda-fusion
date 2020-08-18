@@ -75,7 +75,6 @@ class FunctionFusion {
       console.log(
         `Source "${source}" and destination "${target}" in same lambda group. Invoking local request.`
       )
-
       const { handler } = require(`${this.dirName}/${target}`)
 
       let res: Partial<PromiseResult<

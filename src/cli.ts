@@ -7,6 +7,7 @@ import { FusionConfiguration } from './types'
 import yaml from 'js-yaml'
 import inquirer from 'inquirer'
 import fetch from 'node-fetch'
+import { createDag } from './createDag'
 
 const dirName = process.cwd().split('/').slice(-1)[0]
 
@@ -21,6 +22,7 @@ async function run() {
       'Path to fusion configuration .json'
     )
     .option('-h --handler <fusion-handler-name>', 'Path to fusion handler')
+    .option('-d, --dag', 'create dag.json')
     .parse(process.argv)
 
   if (!process.argv.slice(2).length) {
@@ -28,6 +30,10 @@ async function run() {
   }
 
   let fusionConfig: FusionConfiguration
+
+  if (program.dag) {
+    createDag()
+  }
 
   if (program.fusionConfig) {
     if (program.fusionConfig.startsWith('http')) {
