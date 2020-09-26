@@ -23,6 +23,7 @@ async function run() {
     )
     .option('-h --handler <fusion-handler-name>', 'Path to fusion handler')
     .option('-d, --dag <dirName>', 'create dag.json')
+    .option('-s, --stage <stage>', 'specifies stage, default: prod')
     .parse(process.argv)
 
   if (!process.argv.slice(2).length) {
@@ -121,17 +122,17 @@ async function run() {
     }
 
     const fusionHandler = program.handler || 'fusionHandler'
-
+    const stage = program.stage ? program.stage : 'prod'
     fusionConfig.forEach((fusionGroup) => {
       if (serverlessYaml.functions[fusionGroup.entry]) {
         Object.assign(serverlessYaml.functions[fusionGroup.entry], {
           handler: `src/${fusionHandler}.handler`,
-          name: fusionGroup.entry,
+          name: `${fusionGroup.entry}-${stage}`,
         })
       } else {
         serverlessYaml.functions[fusionGroup.entry] = {
           handler: `src/${fusionHandler}.handler`,
-          name: fusionGroup.entry,
+          name: `${fusionGroup.entry}-${stage}`,
         }
       }
     })
