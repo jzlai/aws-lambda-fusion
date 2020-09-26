@@ -122,15 +122,16 @@ async function run() {
 
     const fusionHandler = program.handler || 'fusionHandler'
     fusionConfig.forEach((fusionGroup) => {
+      const entryPoint = fusionGroup.entry.split('-')[0]
       if (serverlessYaml.functions[fusionGroup.entry]) {
-        Object.assign(serverlessYaml.functions[fusionGroup.entry], {
+        Object.assign(serverlessYaml.functions[entryPoint], {
           handler: `src/${fusionHandler}.handler`,
-          name: `${fusionGroup.entry}-\${opt:stage, \'prod\'}`,
+          name: `${fusionGroup.entry}-\${opt:stage, 'prod'}`,
         })
       } else {
-        serverlessYaml.functions[fusionGroup.entry] = {
+        serverlessYaml.functions[entryPoint] = {
           handler: `src/${fusionHandler}.handler`,
-          name: `${fusionGroup.entry}-\${opt:stage, \'prod\'}`,
+          name: `${entryPoint}-\${opt:stage, 'prod'}`,
         }
       }
     })
