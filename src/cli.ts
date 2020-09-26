@@ -8,6 +8,7 @@ import yaml from 'js-yaml'
 import inquirer from 'inquirer'
 import fetch from 'node-fetch'
 import { createDag } from './createDag'
+import { removeStage } from './utils'
 
 const dirName = process.cwd().split('/').slice(-1)[0]
 
@@ -122,11 +123,11 @@ async function run() {
 
     const fusionHandler = program.handler || 'fusionHandler'
     fusionConfig.forEach((fusionGroup) => {
-      const entryPoint = fusionGroup.entry.split('-')[0]
-      if (serverlessYaml.functions[fusionGroup.entry]) {
+      const entryPoint = removeStage(fusionGroup)
+      if (serverlessYaml.functions[entryPoint]) {
         Object.assign(serverlessYaml.functions[entryPoint], {
           handler: `src/${fusionHandler}.handler`,
-          name: `${fusionGroup.entry}-\${opt:stage, 'prod'}`,
+          name: `${entryPoint}-\${opt:stage, 'prod'}`,
         })
       } else {
         serverlessYaml.functions[entryPoint] = {
@@ -136,7 +137,7 @@ async function run() {
       }
     })
 
-    const entries = fusionConfig.map((fusionGroup) => fusionGroup.entry)
+    const entries = fusionConfig.map((fusionGroup) => removeStage(fusionGroup))
 
     Object.keys(serverlessYaml.functions).forEach((functionName) => {
       if (!entries.includes(functionName)) {
