@@ -1,6 +1,6 @@
 {
   "name": "aws-lambda-fusion",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Runtime data based framework for function fusion",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -23,7 +23,7 @@
   "homepage": "https://github.com/jzlai/aws-lambda-fusion#readme",
   "devDependencies": {
     "@types/aws-lambda": "8.10.44",
-    "@types/clear": "^0.1.0",
+    "@types/clear": "0.1.1",
     "@types/inquirer": "^6.5.0",
     "@types/js-yaml": "^3.12.2",
     "@types/node": "^12.12.29",
