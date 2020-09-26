@@ -125,12 +125,12 @@ async function run() {
       if (serverlessYaml.functions[fusionGroup.entry]) {
         Object.assign(serverlessYaml.functions[fusionGroup.entry], {
           handler: `src/${fusionHandler}.handler`,
-          name: `${fusionGroup.entry}-\${opt:stage, 'prod'}`,
+          name: `${fusionGroup.entry}-\${opt:stage, \'prod\'}`,
         })
       } else {
         serverlessYaml.functions[fusionGroup.entry] = {
           handler: `src/${fusionHandler}.handler`,
-          name: `${fusionGroup.entry}-\${opt:stage, 'prod'}`,
+          name: `${fusionGroup.entry}-\${opt:stage, \'prod\'}`,
         }
       }
     })
