@@ -53,7 +53,9 @@ class FunctionFusion {
       console.log(`Found entry ${entry}`)
 
       const params: InvocationRequest = {
-        FunctionName: entry,
+        FunctionName: `${entry}-${
+          process.env.STAGE ? process.env.STAGE : 'prod'
+        }`,
         InvocationType,
         Payload: {
           target: target,
