@@ -109,6 +109,9 @@ async function run() {
           name: 'aws',
           runtime: answers.nodeRuntime,
           region: answers.awsRegion,
+          environment: {
+            STAGE: "${opt:stage, 'prod'}",
+          },
           iamRoleStatements: [
             {
               Effect: 'Allow',
@@ -123,21 +126,20 @@ async function run() {
 
     const fusionHandler = program.handler || 'fusionHandler'
     fusionConfig.forEach((fusionGroup) => {
-      const entryPoint = removeStage(fusionGroup)
-      if (serverlessYaml.functions[entryPoint]) {
-        Object.assign(serverlessYaml.functions[entryPoint], {
+      if (serverlessYaml.functions[fusionGroup.entry]) {
+        Object.assign(serverlessYaml.functions[fusionGroup.entry], {
           handler: `src/${fusionHandler}.handler`,
-          name: `${entryPoint}-\${opt:stage, 'prod'}`,
+          name: `${fusionGroup.entry}-\${opt:stage, 'prod'}`,
         })
       } else {
-        serverlessYaml.functions[entryPoint] = {
+        serverlessYaml.functions[fusionGroup.entry] = {
           handler: `src/${fusionHandler}.handler`,
-          name: `${entryPoint}-\${opt:stage, 'prod'}`,
+          name: `${fusionGroup.entry}-\${opt:stage, 'prod'}`,
         }
       }
     })
 
-    const entries = fusionConfig.map((fusionGroup) => removeStage(fusionGroup))
+    const entries = fusionConfig.map((fusionGroup) => fusionGroup.entry)
 
     Object.keys(serverlessYaml.functions).forEach((functionName) => {
       if (!entries.includes(functionName)) {
