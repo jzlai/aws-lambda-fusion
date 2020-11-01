@@ -36,6 +36,8 @@ class FunctionFusion {
     args: any[]
   ) {
     const { source, target, context, traceId } = params
+
+    //remote
     if (!this.areInSameFusionGroup(params.source, params.target)) {
       console.log(
         `Source "${source}" and destination "${target}" not in same lambda group. Invoking remote request.`
