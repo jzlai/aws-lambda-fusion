@@ -8,7 +8,7 @@ import yaml from 'js-yaml'
 import inquirer from 'inquirer'
 import fetch from 'node-fetch'
 import { createDag } from './createDag'
-import { removeStage } from './utils'
+import { copyGithubActions } from './copyGithubActions'
 
 const dirName = process.cwd().split('/').slice(-1)[0]
 
@@ -24,6 +24,10 @@ async function run() {
     )
     .option('-h --handler <fusion-handler-name>', 'Path to fusion handler')
     .option('-d, --dag <dirName>', 'create dag.json')
+    .option(
+      '-g, --github-actions',
+      'Creates Github Action files needed for the optimizer to work'
+    )
     .parse(process.argv)
 
   if (!process.argv.slice(2).length) {
@@ -31,6 +35,15 @@ async function run() {
   }
 
   let fusionConfig: FusionConfiguration
+
+  if (program.githubActions) {
+    await copyGithubActions()
+    console.log(
+      `${chalk.bold(chalk.blue('Successfully'))} ${chalk.grey(
+        'generated Github Action files'
+      )}`
+    )
+  }
 
   if (program.dag) {
     createDag(program.dag)

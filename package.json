@@ -1,6 +1,6 @@
 {
   "name": "aws-lambda-fusion",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Runtime data based framework for function fusion",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,7 +8,7 @@
     "aws-lambda-fusion": "./dist/cli.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp github-actions/* dist",
     "prepublish": "tsc"
   },
   "repository": {
@@ -38,6 +38,7 @@
     "chalk": "^3.0.0",
     "clear": "^0.1.0",
     "commander": "^4.1.1",
+    "cp-file": "^9.0.0",
     "inquirer": "^7.1.0",
     "js-yaml": "^3.13.1",
     "node-fetch": "^2.6.1"
