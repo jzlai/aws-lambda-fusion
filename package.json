@@ -30,7 +30,7 @@
     "@types/node-fetch": "^2.5.5",
     "@typescript-eslint/eslint-plugin": "2.10.0",
     "@typescript-eslint/parser": "2.10.0",
-    "aws-sdk": "2.585.0",
+    "aws-sdk": "2.814.0",
     "eslint": "^7.0.0",
     "typescript": "3.8.3"
   },
