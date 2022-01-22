@@ -41,7 +41,7 @@
     "cp-file": "^9.0.0",
     "inquirer": "^7.1.0",
     "js-yaml": "^3.13.1",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^3.1.1"
   },
   "eslintConfig": {
     "rules": {
